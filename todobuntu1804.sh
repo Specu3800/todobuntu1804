@@ -50,26 +50,15 @@ configAMD() {
 	done
 }
 
-
-
-
-
-
-
-
-
-#show version
-if [[ ( $1 = -v ) || ( $1 = --version ) ]]; then
+if [[ ( $1 = -v ) || ( $1 = --version ) ]]; then #show version
 	echo "Version $VERSION"; exit;
 fi
 
-#show help
-if [[ ( $1 = -h ) || ( $1 = --help ) ]]; then
+if [[ ( $1 = -h ) || ( $1 = --help ) ]]; then #show help
 	echo ${HELP}; exit;
 fi
 
-#force sudo execution
-if [[ $UID != 0 ]]; then
+if [[ $UID != 0 ]]; then #force sudo execution
     echo "Please run this script with sudo:"
     echo "sudo $0 $*"
     exit 1
@@ -80,7 +69,6 @@ fi
 echo "-------------------------------------"
 echo "------Welcome to todobuntu1804!------"
 echo "-------------------------------------"
-
 
 #Actual functionality
 while true; do
@@ -244,7 +232,6 @@ echo "Executing: ";
 echo ${programInstallCommand};
 eval ${programInstallCommand};
 
-
 echo "";
 echo "Thanks, that's it for now :)";
 
@@ -254,5 +241,39 @@ echo "Thanks, that's it for now :)";
 
 
 
-
-
+################################################################################
+###############################-TODO-###########################################
+################################################################################
+#
+#Test more thoroughly!!!
+#
+#Add/enable all possible repositories:
+#sudo add-apt-repository -y main
+#sudo add-apt-repository -y universe
+#sudo add-apt-repository -y restricted
+#sudo add-apt-repository -y multiverse
+#sudo add-apt-repository -y "deb http://archive.canonical.com/ubuntu $(lsb_release -sc) partner"
+#sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
+#sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc)-backports main universe restricted multiverse"
+#
+#Handle drivers better:
+#(ask is handle, detect if nvidia, radeon or intel, perform ubuntu-driver autoinstall)
+#
+#Perform update of repositories in adequate places
+#
+#Perform system upgrade
+#
+#Write function to handle packages installation, f.e.: installPackages(names_array)
+#
+#Enable flat-remix after installing
+#
+#Install browsers (gogle-chrome / vivaldi / opera).
+#Try method involving downloading .deb file and installing it with dpkg tool
+#
+#Install spotify, team-viewer, skype in the same manner.
+#
+#Install gnome extensions (dash-to-panel, alternatab, drop-down-terminal, arc-menu), and propose preconfigured config files
+#
+################################################################################
+################################################################################
+################################################################################
