@@ -82,7 +82,6 @@ askUserForProgrammeInstall (){
 
 #askUserForFileInstall "name" "package-name.deb" "wget-link";
 askUserForFileInstall (){ 
-	displayHeader false;
 	askUserYesOrNo "Install $1";
 	if [[ $? == 1 ]]; then
 		declare -a commands=(
@@ -90,6 +89,38 @@ askUserForFileInstall (){
 			"sudo dpkg -i $2"
 			"sudo apt install -f -y"
 			"rm -rf $2")
+		executeCommands "${commands[@]}";
+		return 1;
+	else 
+		return 0; fi
+}
+# local result=$?    gives 1 if programme is going to be installed and 0 if not
+
+#askUserForJetBrainsInstall "name" "url-name" "zip-name" "script-name";
+askUserForJetBrainsInstall (){ 
+	displayHeader false;
+	askUserYesOrNo "Install $1";
+	if [[ $? == 1 ]]; then
+		echo "Now we try to guess what is the newest version of $1";
+		echo "Be patient and do not stop the script!";
+		sleep 5;
+		goSearch=1;
+		for (( i=2019; $i >= 2018; i-- )) ; do
+			for (( j=4; $j >= 0; j-- )) ; do
+				for (( k=6; $k >= 0; k-- )) ; do
+					if [[ $goSearch == 1 ]]; then 
+						echo "dupa"
+						wget "https://download-cf.jetbrains.com/$2-$i.$j.$k.tar.gz" -O "$4.tar.gz"
+						if [[ $? == 0 ]]; then goSearch=0; fi
+					fi
+				done
+			done
+		done
+		declare -a commands=(
+			"sudo tar -xvzf $4.tar.gz -C /opt/"
+			"rm -rf $4.tar.gz"
+			"sudo mv /opt/$3* /opt/$4"
+			"sudo su -c 'sh /opt/$4/bin/$4.sh' ${SUDO_USER}")
 		executeCommands "${commands[@]}";
 		return 1;
 	else 
@@ -182,6 +213,8 @@ addGitBranchNameInPrompt() {
 ############################### --- START HERE --- ##############################
 #################################################################################
 
+
+
 displayHeader true;
 askUserYesOrNo "Enable all default repositories?";
 if [[ $? == 1 ]]; then enableAllRepositories; fi
@@ -227,23 +260,24 @@ echo "Installing...";
 sleep 1;
 
 #Add repositories
-for i in "${repoList[@]}"
-do
+for i in "${repoList[@]}"; do
 	executeCommands "${addRepositoryCommand} ${i}";
-	executeCommands "sudo apt update";
 done
+if [[ ${#repoList[@]} != 0 ]]; then executeCommands "sudo apt update"; fi
 
 #Install programmes
-for i in "${programList[@]}"
-do
+for i in "${programList[@]}"; do
     programInstallCommand+=" $i";
     sleep 1;
 done
-if [[ ${#programInstallCommand[@]} != 0]]; then executeCommands "${programInstallCommand}"; fi
+if [[ ${#programInstallCommand[@]} != 0 ]]; then 
+	sudo apt update;
+	executeCommands "${programInstallCommand}"; 
+fi
 
 displayHeader false;
 echo "Chose what programmes you want to install: (instalation from .deb files)";
-sleep 2;
+sleep 3;
 SPOTIFY_URL=http://repository.spotify.com/pool/non-free/s/spotify-client/
 wget $SPOTIFY_URL &> /dev/null
 SPOTIFY_URL+=$(awk -F\" '/href=/{print $2}' index.html | grep amd64 | sed '1 d')
@@ -254,6 +288,11 @@ askUserForFileInstall "Skype"        "skype.deb"   "https://go.skype.com/skypefo
 askUserForFileInstall "Team Viewer"  "tv.deb"      "https://download.teamviewer.com/download/linux/teamviewer_amd64.deb";
 askUserForFileInstall "Etcher"       "etcher.deb"  "https://github.com/resin-io/etcher/releases/download/v1.4.9/balena-etcher-electron_1.4.9_amd64.deb";
 askUserForFileInstall "Discord"      "discord.deb" "https://discordapp.com/api/download?platform=linux&format=deb";
+
+
+askUserForJetBrainsInstall "IntelliJ IDEA" "idea/ideaIU" "idea-IU" "idea";
+askUserForJetBrainsInstall "CLion" "cpp/CLion" "clion" "clion";
+askUserForJetBrainsInstall "Rider" "rider/JetBrains.Rider" "JetBrains" "rider";
 
 displayHeader false;
 echo "Thanks, that's it for now :)";
@@ -267,6 +306,9 @@ sleep 1;
 #
 #Test more thoroughly!!!
 #
+#Uninstall unwanted programms
+#
+#Install newest android studio
 #
 #Enable flat-remix after installing
 #gsettings set org.gnome.desktop.interface icon-theme 'MyIconTheme'
