@@ -208,7 +208,8 @@ addRepositoryCommand="sudo add-apt-repository -y";
 
 askUserForProgrammeInstall "GIMP" "gimp";
 askUserForProgrammeInstall "Steam" "steam"; 
-askUserForProgrammeInstall "KolourPaint" "kolourpaint"; 
+askUserForProgrammeInstall "KolourPaint" "kolourpaint";
+askUserForProgrammeInstall "qBittorrent" "qbittorrent"; 
 askUserForProgrammeInstall "VLC Media Player" "vlc"; 
 askUserForProgrammeInstall "TLP" "tlp tlp-rdw";
 askUserForProgrammeInstall "Ubuntu Restricted Extras" "ubuntu-restricted-extras";
