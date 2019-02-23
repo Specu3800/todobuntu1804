@@ -68,7 +68,7 @@ askUserForProgrammeInstall (){
 			[Yy]* ) 
 				programList+=($2); 
 				if [[ $3 != "" ]]; then
-					repoList+=($3);
+					repoCommandList+="sudo add-apt-repository -y $3";
 				fi
 				return 1;
 				break;;
@@ -109,7 +109,6 @@ askUserForJetBrainsInstall (){
 			for (( j=4; $j >= 0; j-- )) ; do
 				for (( k=6; $k >= 0; k-- )) ; do
 					if [[ $goSearch == 1 ]]; then 
-						echo "dupa"
 						wget "https://download-cf.jetbrains.com/$2-$i.$j.$k.tar.gz" -O "$4.tar.gz"
 						if [[ $? == 0 ]]; then goSearch=0; fi
 					fi
@@ -120,6 +119,7 @@ askUserForJetBrainsInstall (){
 			"sudo tar -xvzf $4.tar.gz -C /opt/"
 			"rm -rf $4.tar.gz"
 			"sudo mv /opt/$3* /opt/$4"
+			"sudo chmod -R 777 /opt/$4"
 			"sudo su -c 'sh /opt/$4/bin/$4.sh' ${SUDO_USER}")
 		executeCommands "${commands[@]}";
 		return 1;
@@ -135,7 +135,7 @@ enableAllRepositories() {
 		"sudo add-apt-repository -y 'deb http://archive.canonical.com/ubuntu $(lsb_release -sc) partner'" 
 		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-security main restricted universe multiverse'" 
 		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-updates main restricted universe multiverse'" 
-		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-proposed main restricted universe multiverse'" 
+#		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-proposed main restricted universe multiverse'" 
 		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-backports main restricted universe multiverse'" )
 	executeCommands "${commands[@]}";
 }
@@ -147,12 +147,27 @@ declare -a commands=(
 	executeCommands "${commands[@]}";
 }
 
-swapSnap() {
-	declare -a commands=(
-		"snap remove gnome-calculator gnome-characters gnome-logs gnome-system-monitor gnome-3-26-1604;"
-		"apt install -y gnome-calculator gnome-system-monitor;")
+removeJunkFiles() {
+declare -a commands=(
+		"sudo apt remove -y gnome-mahjongg gnome-mines gnome-sudoku deja-dup remmina cheese shotwell simple-scan totem transmission-common transmission-gtk vim gnome-todo gnome-getting-started-docs-pl gnome-getting-started-docs gnome-startup-applications"
+
+		"sudo apt autoremove -y")
 	executeCommands "${commands[@]}";
 }
+
+swapSnap() {
+	declare -a commands=(
+		"sudo snap remove gnome-calculator gnome-characters gnome-logs gnome-system-monitor gnome-3-26-1604;"
+		"sudo apt install -y gnome-calculator gnome-system-monitor;")
+	executeCommands "${commands[@]}";
+}
+
+closeLidNoAction() {
+declare -a commands=(
+		"echo 'HandleLidSwitch=ignore' >> /etc/systemd/logind.conf")
+	executeCommands "${commands[@]}";
+}
+
 
 configureNvidia() {
 	declare -a commands=(
@@ -220,12 +235,20 @@ askUserYesOrNo "Enable all default repositories?";
 if [[ $? == 1 ]]; then enableAllRepositories; fi
 
 displayHeader false;
+askUserYesOrNo "Remove junk files?";
+if [[ $? == 1 ]]; then removeJunkFiles; fi
+
+displayHeader false;
 askUserYesOrNo "Perform an update of all packages?";
 if [[ $? == 1 ]]; then updateAndUpgrade; fi
 
 displayHeader false;
 askUserYesOrNo "Swap snap programs for apt ones?";
 if [[ $? == 1 ]]; then swapSnap; fi
+
+displayHeader false;
+askUserYesOrNo "Make no action on lid close?";
+if [[ $? == 1 ]]; then closeLidNoAction; fi
 
 displayHeader false;
 askUserYesOrNo "Configure drivers? ";
@@ -235,9 +258,8 @@ displayHeader false;
 echo "Chose what programmes you want to install: (instalation from repositories)";
 sleep 1;
 programList=();
-repoList=();
+repoCommandList=();
 programInstallCommand="sudo apt install -y";
-addRepositoryCommand="sudo add-apt-repository -y";
 
 askUserForProgrammeInstall "GIMP" "gimp";
 askUserForProgrammeInstall "Steam" "steam"; 
@@ -245,9 +267,17 @@ askUserForProgrammeInstall "KolourPaint" "kolourpaint";
 askUserForProgrammeInstall "qBittorrent" "qbittorrent"; 
 askUserForProgrammeInstall "VLC Media Player" "vlc"; 
 askUserForProgrammeInstall "TLP" "tlp tlp-rdw";
+askUserForProgrammeInstall "PowerTOP" "powertop";
+if [[ $? == 1 ]]; then
+	askUserYesOrNo "Calibrate it now?";
+	if [[ $? == 1 ]]; then executeCommands "sudo powertop --calibrate"; fi
+fi
 askUserForProgrammeInstall "Ubuntu Restricted Extras" "ubuntu-restricted-extras";
+askUserForProgrammeInstall "GNOME Shell Extensions" "gnome-shell-extensions";
+askUserForProgrammeInstall "Chrome GNOME Shell" "chrome-gnome-shell";
 askUserForProgrammeInstall "GNOME Tweak Tool (Tweaks)" "gnome-tweak-tool";
 askUserForProgrammeInstall "GRUB Customizer" "grub-customizer" "ppa:danielrichter2007/grub-customizer";
+askUserForProgrammeInstall "Ubuntu Kernel Update Utility" "ukuu" "ppa:teejee2008/ppa";
 askUserForProgrammeInstall "Flat Remix (icon theme)" "flat-remix" "ppa:daniruiz/flat-remix";
 askUserForProgrammeInstall "Git" "git";
 if [[ $? == 1 ]]; then
@@ -260,15 +290,11 @@ echo "Installing...";
 sleep 1;
 
 #Add repositories
-for i in "${repoList[@]}"; do
-	executeCommands "${addRepositoryCommand} ${i}";
-done
-if [[ ${#repoList[@]} != 0 ]]; then executeCommands "sudo apt update"; fi
+if [[ ${#repoCommandList[@]} != 0 ]]; then executeCommands ${#repoCommandList[@]}; fi
 
 #Install programmes
 for i in "${programList[@]}"; do
     programInstallCommand+=" $i";
-    sleep 1;
 done
 if [[ ${#programInstallCommand[@]} != 0 ]]; then 
 	sudo apt update;
@@ -293,6 +319,11 @@ askUserForFileInstall "Discord"      "discord.deb" "https://discordapp.com/api/d
 askUserForJetBrainsInstall "IntelliJ IDEA" "idea/ideaIU" "idea-IU" "idea";
 askUserForJetBrainsInstall "CLion" "cpp/CLion" "clion" "clion";
 askUserForJetBrainsInstall "Rider" "rider/JetBrains.Rider" "JetBrains" "rider";
+if [[ $? == 1 ]]; then
+	askUserForProgrammeInstall "dotnet-sdk-2.2" "dotnet-sdk-2.2";
+	askUserForFileInstall "packages-microsoft-prod"      "https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb";
+fi
+
 
 displayHeader false;
 echo "Thanks, that's it for now :)";
