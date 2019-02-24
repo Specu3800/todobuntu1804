@@ -68,7 +68,7 @@ askUserForProgrammeInstall (){
 			[Yy]* ) 
 				programList+=($2); 
 				if [[ $3 != "" ]]; then
-					repoCommandList+="sudo add-apt-repository -y $3";
+					repoCommandList+=("sudo add-apt-repository -y $3");
 				fi
 				return 1;
 				break;;
@@ -149,7 +149,7 @@ declare -a commands=(
 
 removeJunkFiles() {
 declare -a commands=(
-		"sudo apt remove -y gnome-mahjongg gnome-mines gnome-sudoku deja-dup remmina cheese shotwell simple-scan totem transmission-common transmission-gtk vim gnome-todo gnome-getting-started-docs-pl gnome-getting-started-docs gnome-startup-applications"
+		"sudo apt remove -y thunderbird usb-creator* aisleriot gnome-mahjongg gnome-mines gnome-sudoku deja-dup remmina cheese shotwell simple-scan totem transmission* vim gnome-todo gnome-getting-started* gnome-startup-applications"
 
 		"sudo apt autoremove -y")
 	executeCommands "${commands[@]}";
@@ -260,18 +260,16 @@ sleep 1;
 programList=();
 repoCommandList=();
 programInstallCommand="sudo apt install -y";
+completeInstallCommands=();
 
 askUserForProgrammeInstall "GIMP" "gimp";
-askUserForProgrammeInstall "Steam" "steam"; 
+askUserForProgrammeInstall "Inkscape" "inkscape";
 askUserForProgrammeInstall "KolourPaint" "kolourpaint";
+askUserForProgrammeInstall "Steam" "steam"; 
 askUserForProgrammeInstall "qBittorrent" "qbittorrent"; 
 askUserForProgrammeInstall "VLC Media Player" "vlc"; 
 askUserForProgrammeInstall "TLP" "tlp tlp-rdw";
 askUserForProgrammeInstall "PowerTOP" "powertop";
-if [[ $? == 1 ]]; then
-	askUserYesOrNo "Calibrate it now?";
-	if [[ $? == 1 ]]; then executeCommands "sudo powertop --calibrate"; fi
-fi
 askUserForProgrammeInstall "Ubuntu Restricted Extras" "ubuntu-restricted-extras";
 askUserForProgrammeInstall "GNOME Shell Extensions" "gnome-shell-extensions";
 askUserForProgrammeInstall "Chrome GNOME Shell" "chrome-gnome-shell";
@@ -285,22 +283,25 @@ if [[ $? == 1 ]]; then
 	if [[ $? == 1 ]]; then addGitBranchNameInPrompt; fi
 fi
 
-displayHeader false;
-echo "Installing...";
-sleep 1;
 
-#Add repositories
-if [[ ${#repoCommandList[@]} != 0 ]]; then executeCommands ${#repoCommandList[@]}; fi
 
-#Install programmes
 for i in "${programList[@]}"; do
     programInstallCommand+=" $i";
 done
-if [[ ${#programInstallCommand[@]} != 0 ]]; then 
-	sudo apt update;
-	executeCommands "${programInstallCommand}"; 
+if [[ ${#programList[@]} != 0 ]]; then 
+    echo "Installing...";
+    sleep 1;
+    completeInstallCommands=("${repoCommandList[@]}" "sudo apt update" "${programInstallCommand}")
+    executeCommands "${completeInstallCommands[@]}";
+else     
+    echo "Nothing to install...";
+    sleep 1;
 fi
 
+displayHeader false;
+askUserYesOrNo "Calibrate PowerTOP now?";
+if [[ $? == 1 ]]; then executeCommands "sudo powertop --calibrate"; fi
+	
 displayHeader false;
 echo "Chose what programmes you want to install: (instalation from .deb files)";
 sleep 3;
@@ -318,11 +319,12 @@ askUserForFileInstall "Discord"      "discord.deb" "https://discordapp.com/api/d
 
 askUserForJetBrainsInstall "IntelliJ IDEA" "idea/ideaIU" "idea-IU" "idea";
 askUserForJetBrainsInstall "CLion" "cpp/CLion" "clion" "clion";
-askUserForJetBrainsInstall "Rider" "rider/JetBrains.Rider" "JetBrains" "rider";
-if [[ $? == 1 ]]; then
-	askUserForProgrammeInstall "dotnet-sdk-2.2" "dotnet-sdk-2.2";
-	askUserForFileInstall "packages-microsoft-prod"      "https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb";
-fi
+askUserForJetBrainsInstall "Rider" "rider/JetBrains.Rider" "JetBrains\ R" "rider";
+#if [[ $? == 1 ]]; then
+	#askUserForProgrammeInstall "dotnet-sdk-2.2" "dotnet-sdk-2.2";
+	#if [[ $? == 1 ]]; then executeCommands "sudo apt install -y dotnet-sdk-2.2"; fi
+	#askUserForFileInstall "packages-microsoft-prod"      "https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb";
+#fi
 
 
 displayHeader false;
