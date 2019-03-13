@@ -157,7 +157,11 @@ declare -a commands=(
 
 swapSnap() {
 	declare -a commands=(
-		"sudo snap remove gnome-calculator gnome-characters gnome-logs gnome-system-monitor gnome-3-26-1604;"
+		"sudo snap remove gnome-calculator;"
+		"sudo snap remove gnome-characters;"
+		"sudo snap remove gnome-logs;"
+		"sudo snap remove gnome-system-monitor;"
+		"sudo snap remove gnome-3-26-1604;"
 		"sudo apt install -y gnome-calculator gnome-system-monitor;")
 	executeCommands "${commands[@]}";
 }
@@ -319,7 +323,10 @@ askUserForFileInstall "Discord"      "discord.deb" "https://discordapp.com/api/d
 
 askUserForJetBrainsInstall "IntelliJ IDEA" "idea/ideaIU" "idea-IU" "idea";
 askUserForJetBrainsInstall "CLion" "cpp/CLion" "clion" "clion";
+askUserForJetBrainsInstall "PyCharm" "python/pycharm-professional" "pycharm" "pycharm";
 askUserForJetBrainsInstall "Rider" "rider/JetBrains.Rider" "JetBrains\ R" "rider";
+
+
 #if [[ $? == 1 ]]; then
 	#askUserForProgrammeInstall "dotnet-sdk-2.2" "dotnet-sdk-2.2";
 	#if [[ $? == 1 ]]; then executeCommands "sudo apt install -y dotnet-sdk-2.2"; fi
@@ -345,7 +352,6 @@ sleep 1;
 #
 #Enable flat-remix after installing
 #gsettings set org.gnome.desktop.interface icon-theme 'MyIconTheme'
-#
 #
 #Install gnome extensions (dash-to-panel, alternatab, drop-down-terminal, arc-menu), and propose preconfigured config files
 #
