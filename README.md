@@ -1,4 +1,4 @@
-# todobuntu1810
+# TODObuntu1810
 Few things to do after installing Ubuntu 18.10 in a nice little script.
 
 ## Getting Started

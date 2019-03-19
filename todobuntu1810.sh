@@ -128,15 +128,34 @@ askUserForJetBrainsInstall (){
 }
 # local result=$?    gives 1 if programme is going to be installed and 0 if not
 
+
+#askUserForAndroidStudioInstall
+askUserForAndroidStudioInstall (){ 
+	displayHeader false;
+	askUserYesOrNo "Install Android Studio";
+	if [[ $? == 1 ]]; then
+	    wget "https://dl.google.com/dl/android/studio/ide-zips/3.3.2.0/android-studio-ide-182.5314842-linux.zip" -O "android-studio.zip"			
+		declare -a commands=(
+			"sudo apt install -y unzip"
+			"sudo unzip android-studio.zip -d /opt/"
+			"sudo chmod -R 777 /opt/android-studio"
+			"sudo su -c 'sh /opt/android-studio/bin/studio.sh' ${SUDO_USER}")
+		executeCommands "${commands[@]}";
+		return 1;
+	else 
+		return 0; fi
+}
+# local result=$?    gives 1 if programme is going to be installed and 0 if not
+
 enableAllRepositories() {
 	declare -a commands=(
 		"sudo rm -rf /etc/apt/sources.list && touch /etc/apt/sources.list"
-		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc) main restricted universe multiverse'" 
+		"sudo add-apt-repository -y 'deb http://pl.archive.ubuntu.com/ubuntu/ $(lsb_release -sc) main restricted universe multiverse'" 
 		"sudo add-apt-repository -y 'deb http://archive.canonical.com/ubuntu $(lsb_release -sc) partner'" 
-		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-security main restricted universe multiverse'" 
-		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-updates main restricted universe multiverse'" 
-#		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-proposed main restricted universe multiverse'" 
-		"sudo add-apt-repository -y 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-backports main restricted universe multiverse'" )
+		"sudo add-apt-repository -y 'deb http://pl.archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-security main restricted universe multiverse'" 
+		"sudo add-apt-repository -y 'deb http://pl.archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-updates main restricted universe multiverse'" 
+#		"sudo add-apt-repository -y 'deb http://pl.archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-proposed main restricted universe multiverse'" 
+		"sudo add-apt-repository -y 'deb http://pl.archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-backports main restricted universe multiverse'" )
 	executeCommands "${commands[@]}";
 }
 
@@ -166,12 +185,28 @@ swapSnap() {
 	executeCommands "${commands[@]}";
 }
 
-closeLidNoAction() {
-declare -a commands=(
-		"echo 'HandleLidSwitch=ignore' >> /etc/systemd/logind.conf")
-	executeCommands "${commands[@]}";
+configureLidSwitch() {
+	while true; do
+		echo "";
+		read -r -p "What to do after closing the laptop lid, nothing or suspend? [n, s, cancel]: " decision
+		case ${decision} in
+			[Nn]* )
+				declare -a commands=(
+		        "sudo sed -i -e 's/#HandleLidSwitch=suspend/HandleLidSwitch=ignore/g' /etc/systemd/logind.conf"
+		        "sudo sed -i -e 's/HandleLidSwitch=suspend/HandleLidSwitch=ignore/g' /etc/systemd/logind.conf")
+	            executeCommands "${commands[@]}"; 
+	            break;;
+			[Ss]* )
+				declare -a commands=(
+		        "sudo sed -i -e 's/#HandleLidSwitch=suspend/HandleLidSwitch=suspend/g' /etc/systemd/logind.conf"
+		        "sudo sed -i -e 's/HandleLidSwitch=ignore/HandleLidSwitch=suspend/g' /etc/systemd/logind.conf")
+	            executeCommands "${commands[@]}"; 
+	            break;;
+			cancel )
+				break;;
+		esac
+	done;
 }
-
 
 configureNvidia() {
 	declare -a commands=(
@@ -251,8 +286,8 @@ askUserYesOrNo "Swap snap programs for apt ones?";
 if [[ $? == 1 ]]; then swapSnap; fi
 
 displayHeader false;
-askUserYesOrNo "Make no action on lid close?";
-if [[ $? == 1 ]]; then closeLidNoAction; fi
+askUserYesOrNo "Configure lid switch?";
+if [[ $? == 1 ]]; then configureLidSwitch; fi
 
 displayHeader false;
 askUserYesOrNo "Configure drivers? ";
@@ -325,7 +360,7 @@ askUserForJetBrainsInstall "IntelliJ IDEA" "idea/ideaIU" "idea-IU" "idea";
 askUserForJetBrainsInstall "CLion" "cpp/CLion" "clion" "clion";
 askUserForJetBrainsInstall "PyCharm" "python/pycharm-professional" "pycharm" "pycharm";
 askUserForJetBrainsInstall "Rider" "rider/JetBrains.Rider" "JetBrains\ R" "rider";
-
+askUserForAndroidStudioInstall
 
 #if [[ $? == 1 ]]; then
 	#askUserForProgrammeInstall "dotnet-sdk-2.2" "dotnet-sdk-2.2";
