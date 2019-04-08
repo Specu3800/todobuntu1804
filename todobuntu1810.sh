@@ -364,6 +364,7 @@ askUserForJetBrainsInstall "IntelliJ IDEA" "idea/ideaIU" "idea-IU" "idea";
 askUserForJetBrainsInstall "CLion" "cpp/CLion" "clion" "clion";
 askUserForJetBrainsInstall "PyCharm" "python/pycharm-professional" "pycharm" "pycharm";
 askUserForJetBrainsInstall "Rider" "rider/JetBrains.Rider" "JetBrains\ R" "rider";
+askUserForJetBrainsInstall "DataGrip" "datagrip/datagrip" "DataGrip" "datagrip";
 askUserForAndroidStudioInstall
 
 #if [[ $? == 1 ]]; then
